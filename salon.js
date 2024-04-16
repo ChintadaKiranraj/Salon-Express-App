@@ -24,7 +24,7 @@ const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "postgres",
-  password: "Kir@n1998",
+  password: "KIRAN1998",
   port: 5432,
 });
 
@@ -36,7 +36,7 @@ app.post("/api/login", async (req, res) => {
     console.log("password", password);
 
     // Check if the user exists in the database
-    const userQuery = await pool.query("SELECT * FROM Users WHERE email = $1", [
+    const userQuery = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
     const user = userQuery.rows[0];
@@ -61,23 +61,11 @@ app.post("/api/login", async (req, res) => {
       return;
     }
 
-    // User exists and password is correct
-    // res.status(200).json({
-    //   success: true,
-    //   user: user,
-    //   message: "User logged in successfully.",
-    //   jwt_token:
-
-    // });
-    // Generate JWT token
     const token = jwt.sign(
-      { ...user, password: "", confirmpassword: "", profilephoto: "" },
+      { ...user, password: "", confirm_password: "", profile_photo: "" },
       "root"
     );
 
-    // Convert token to base64
-    // const base64Token = Buffer.from(token).toString("base64");
-    // console.log("token", token)
     const base64Token = token;
 
     res.status(200).json({
@@ -87,15 +75,6 @@ app.post("/api/login", async (req, res) => {
       jwt_token: base64Token,
       roles: ["Shop Owner"],
     });
-
-    // res.status(200).json({
-    //   status: "success",
-    //   roles: ["Admin", "User", "SystemAdmin"],
-    //   message: "User logged in successfully.",
-    //   code :200,
-    //   jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJBZG1pbiIsIlVzZXIiLCJTeXN0ZW1BZG1pbiJdLCJmdWxsX25hbWUiOiJLaXJhbiByYWoiLCJlbWFpbCI6ImtpcmFucmFqLmNoaW50YWRhQGVwc29mdGluYy5jb20iLCJ1c2VySWQiOjEsInJvbGUiOiJBZG1pbiIsInVzZXJfdHlwZSI6IlNob3BPd25lciJ9.whJduNoaqcM34DRELRFR3uoc5kW0Z8c5adRxek_DErI"
-
-    // });
   } catch (error) {
     console.error("Error during user login:", error);
     res.status(500).json({ success: false, message: "Error logging in user." });
@@ -121,7 +100,7 @@ app.post("/api/registerUser", async (req, res) => {
 
     // Example query to insert user data into the Users table
     const result = await pool.query(
-      "INSERT INTO Users (firstname,lastname,email,password,confirmpassword,phonenumber,profilephoto,usertype) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING *",
+      "INSERT INTO users (first_name,last_name,email,password,confirm_password,phone_number,profile_photo,user_type) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING *",
       [
         firstName,
         lastName,
@@ -156,7 +135,7 @@ app.post(
       const { barberId, shopId, ownerId } = req.params;
       const { years, months, status, description } = req.body;
       const result = await pool.query(
-        "INSERT INTO BarberApplications (shopid,ownerid,status,experience,description,years,months,barberid) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING *",
+        "INSERT INTO BarberApplications (shop_id,owner_id,status,experience,description,years,months,barber_id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING *",
         [
           shopId,
           ownerId,
@@ -209,7 +188,7 @@ app.post("/api/barber-shop-registration/:ownerId", async (req, res) => {
 
     // Example query to insert user data into the Users table
     const result = await pool.query(
-      "INSERT INTO Shops (shopName, location,ownerid,profilephoto) VALUES ($1, $2, $3,$4) RETURNING *",
+      "INSERT INTO Shops (shop_name, location,owner_id,profile_photo) VALUES ($1, $2, $3,$4) RETURNING *",
       [shopName, location, ownerId, profilePhoto]
     );
 
@@ -239,13 +218,13 @@ app.get("/api/shop-name-availability/:shopName/:ownerId", async (req, res) => {
     console.log("ownerId", ownerId);
     // const result = await pool.query(`SELECT * FROM Shops WHERE shopName ='${shopName}' and  ownerid='${ownerId}'`);
     const result = await pool.query(
-      `SELECT * FROM Shops WHERE shopName = '${shopName}' AND ownerid <> '${ownerId}'`
+      `SELECT * FROM shops WHERE shop_name = '${shopName}' AND owner_id <> '${ownerId}'`
     );
 
     const shopsNames = result.rows;
     console.log("shopsNames", shopsNames);
 
-    const isValuePresent = shopsNames.some((obj) => obj.shopname === shopName);
+    const isValuePresent = shopsNames.some((obj) => obj.shop_name === shopName);
     console.log("isValuePresent", isValuePresent);
     if (isValuePresent) {
       res.status(201).json({
@@ -278,7 +257,7 @@ app.post("/api/saloon-booking/:userId/:shopId/:ownerId", async (req, res) => {
 
     console.log(req.body);
     const result = await pool.query(
-      "INSERT INTO Bookings (userid, location,shopname,barberid,bookingdatetime,status,shopid,ownerid,saloon_service) VALUES ($1, $2, $3,$4,$5,$6,$7,$8,$9) RETURNING *",
+      "INSERT INTO Bookings (user_id, location,shop_name,barber_id,booking_date_time,status,shop_id,owner_id,saloon_service) VALUES ($1, $2, $3,$4,$5,$6,$7,$8,$9) RETURNING *",
       [
         userId,
         location,
@@ -311,34 +290,16 @@ app.post("/api/saloon-booking/:userId/:shopId/:ownerId", async (req, res) => {
   }
 });
 
-// app.get('/api/get-all-registerShopOwner', async (req, res) => {
-//   try {
-
-//     const result = await pool.query('SELECT * FROM ShopOwners');
-
-//     const newUser = result.rows[0];
-//     res.status(200).json({
-//       success: true,
-//       message: 'Fetched all-registerShopOwner successfully.',
-//       shopOwners: allShopOwners,
-//     });
-//     res.status(201).json({ success: true, message: 'Fetched all-registerShopOwner successfully.', user: newUser });
-//   } catch (error) {
-//     console.error('Error during fetching all-registerShopOwner:', error);
-//     res.status(500).json({ success: false, message: 'Error fetching all-registerShopOwner' });
-//   }
-// });
-
 //api to get all the shops
 app.get("/api/get-all-shops/:ownerId", async (req, res) => {
   const { ownerId } = req.params;
   try {
     console.log("inside the get all shops");
     const sqlQuery = `
-    SELECT Shops.ShopID, Shops.ShopName, Shops.Location, Shops.ProfilePhoto, Users.FirstName, Users.LastName,Users.PhoneNumber,Users.Email
-    FROM Shops
-    JOIN Users ON Shops.OwnerID = Users.UserID
-    where Shops.OwnerID = '${ownerId}'
+    SELECT shops.shop_id, shops.shop_name, shops.location, shops.profile_photo, users.first_name, users.last_name,users.phone_number,users.email
+    FROM shops
+    JOIN users ON shops.owner_id = users.user_id
+    where shops.owner_id = '${ownerId}'
   `;
     const result = await pool.query(sqlQuery);
 
@@ -360,7 +321,7 @@ app.get("/api/get-salon-servicess", async (req, res) => {
   try {
     const sqlQuery = `
     SELECT  *
-    FROM SalonServices
+    FROM salon_services
     ;
 `;
     const result = await pool.query(sqlQuery);
@@ -384,8 +345,8 @@ app.get("/api/shops-locations", async (req, res) => {
   try {
     console.log("inside the get all shops location");
     const sqlQuery = `
-    SELECT DISTINCT Location
-FROM Shops;
+    SELECT DISTINCT location
+FROM shops;
   `;
 
     const result = await pool.query(sqlQuery);
@@ -411,8 +372,8 @@ app.get("/api/shopname-by-location/:location/", async (req, res) => {
 
     console.log("inside the get all shops location");
     const sqlQuery = `
-    SELECT shopid,shopname,location,ownerid
-FROM Shops WHERE Location =  '${location}';`;
+    SELECT shop_id,shop_name,location,owner_id
+FROM shops WHERE location =  '${location}';`;
     const result = await pool.query(sqlQuery);
 
     const data = result.rows;
@@ -430,38 +391,6 @@ FROM Shops WHERE Location =  '${location}';`;
       .json({ success: false, message: "Error fetching all shops locations" });
   }
 });
-//To get booking details along with user information
-// app.get('/api/get-all-bookings', async (req, res) => {
-//   try {
-//     const result = await pool.query(`
-//       SELECT
-//         B.BookingID,
-//         B.UserID,
-//         U.Username,
-//         U.FirstName,
-//         U.LastName,
-//         U.Email,
-//         B.BarberID,
-//         B.BookingDateTime,
-//         B.Status
-//       FROM
-//         Bookings B
-//       JOIN
-//         Users U ON B.UserID = U.UserID
-//     `);
-
-//     const bookings = result.rows;
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Fetched all bookings successfully.',
-//       bookings,
-//     });
-//   } catch (error) {
-//     console.error('Error during fetching all bookings:', error);
-//     res.status(500).json({ success: false, message: 'Error fetching all bookings' });
-//   }
-// });
 
 app.get("/api/get-all-shop-owners", async (req, res) => {
   try {
@@ -469,8 +398,8 @@ app.get("/api/get-all-shop-owners", async (req, res) => {
       SELECT
         *
       FROM
-        Users 
-      WHERE UserType Like 'Shop Owner'
+        users 
+      WHERE user_type Like 'shop_owner'
     `);
 
     const shopOwners = result.rows;
@@ -490,7 +419,7 @@ app.get("/api/get-all-shop-owners", async (req, res) => {
 
 app.get("/api/get-all-users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM Users");
+    const result = await pool.query("SELECT * FROM users");
     const users = result.rows;
 
     res.status(200).json({
@@ -515,12 +444,12 @@ app.get("/api/users-with-bookings/:ownerId", async (req, res) => {
     const { ownerId } = req.params;
     // Users.ProfilePhoto,
     const sqlQuery = `
-      SELECT Users.UserID, Users.FirstName, Users.LastName, Users.Email, Users.PhoneNumber,Users.UserType,
-             Bookings.BookingID, Bookings.Location, Bookings.ShopName, Bookings.BarberID, Bookings.ShopID, Bookings.OwnerID,
-             Bookings.BookingDateTime, Bookings.Status
-      FROM Users
-      INNER JOIN Bookings ON Users.UserID = Bookings.UserID
-      WHERE Bookings.OwnerID = ${ownerId} AND Bookings.Status = 'pending';
+      SELECT users.user_id, users.first_name, users.last_name, users.email, users.phone_number,users.user_type,
+             bookings.booking_id, bookings.location, bookings.shop_name, bookings.barber_id, bookings.shop_id, bookings.owner_id,
+             bookings.booking_date_time, bookings.status
+      FROM users
+      INNER JOIN bookings ON users.user_id = bookings.user_id
+      WHERE bookings.owner_id = ${ownerId} AND bookings.status = 'pending';
     `;
 
     const result = await pool.query(sqlQuery);
@@ -548,7 +477,7 @@ app.get("/api/get-locations", async (req, res) => {
 
     const sqlQuery = `
       SELECT *
-      FROM Locations
+      FROM locations
     
     `;
 
@@ -574,7 +503,7 @@ app.get("/api/get-shops-by-location/:location", async (req, res) => {
     console.log("Fetching users with booked appointments");
     const { location } = req.params;
     const sqlQuery = `
-    SELECT * FROM Shops WHERE Location = '${location}';
+    SELECT * FROM shops WHERE location = '${location}';
 
     `;
 
@@ -720,7 +649,7 @@ app.get("/api/get-users-appointments/:userId", async (req, res) => {
     console.log("inside individual user appointments");
     const { userId } = req.params;
 
-    const sqlQuery = `SELECT * FROM Bookings WHERE UserID = '${userId}'`;
+    const sqlQuery = `SELECT * FROM bookings WHERE user_id = '${userId}'`;
 
     const result = await pool.query(sqlQuery);
     const data = result.rows;
@@ -744,7 +673,7 @@ app.get("/api/delete-barber-application/:applicationid", async (req, res) => {
     console.log("inside delete barber  application");
     const { applicationid } = req.params;
 
-    const sqlQuery = `DELETE  FROM barberapplications WHERE applicationid = '${applicationid}'`;
+    const sqlQuery = `DELETE  FROM barber_applications WHERE application_id = '${applicationid}'`;
 
     const result = await pool.query(sqlQuery);
     const data = result.rows;
@@ -828,7 +757,7 @@ app.put("/api/update-user-profile-photo/:userId", async (req, res) => {
     console.log("inside  Update user  profile photo");
     const { userId } = req.params;
 
-    const sqlQuery = `UPDATE Users SET ProfilePhoto = '${req.body.profilePhoto}' WHERE UserID = '${userId}'`;
+    const sqlQuery = `UPDATE users SET profile_photo = '${req.body.profilePhoto}' WHERE user_id = '${userId}'`;
 
     const result = await pool.query(sqlQuery);
     const data = result.rows[0];
@@ -854,7 +783,7 @@ app.get("/api/get-user-profile-photo/:userId", async (req, res) => {
     console.log("inside  the get user profile photo");
     const { userId } = req.params;
 
-    const sqlQuery = `SELECT ProfilePhoto FROM Users WHERE UserID = '${userId}'`;
+    const sqlQuery = `SELECT profile_photo FROM Users WHERE user_id = '${userId}'`;
 
     const result = await pool.query(sqlQuery);
     const data = result.rows[0];
@@ -875,7 +804,7 @@ app.get("/api/get-user-profile-photo/:userId", async (req, res) => {
 });
 
 app.get("/api/saloon-servicess", async (req, res) => {
-  const querry = `SELECT * FROM SalonServices`;
+  const querry = `SELECT * FROM salon_services`;
   const result = await pool.query(querry);
   const data = result.rows;
   res.status(200).json({
@@ -886,8 +815,8 @@ app.get("/api/saloon-servicess", async (req, res) => {
   });
 });
 
-app.get("/api/salonServicess", async (req, res) => {
-  const querry = `SELECT * FROM SalonServices`;
+app.get("/api/salon-servicess", async (req, res) => {
+  const querry = `SELECT * FROM salon_services`;
   const result = await pool.query(querry);
   const data = result.rows;
   res.status(200).json({
@@ -994,7 +923,7 @@ app.get("/api/view-service-details/:id", async (req, res) => {
 });
 app.get("/api/servie-details", async (req, res) => {
   console.log("view service price detaiuls is caled...");
- 
+
   const querry = `SELECT *  FROM salon_sub_details  order by service_id desc`;
 
   try {
@@ -1020,7 +949,9 @@ app.put("/api/change-password", async (req, res) => {
 
   try {
     // Check if the current password is correct for the given user
-    const user = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+    const user = await pool.query("SELECT * FROM users WHERE id = $1", [
+      userId,
+    ]);
     if (user.rows.length === 0) {
       return res.status(404).json({
         status: false,
